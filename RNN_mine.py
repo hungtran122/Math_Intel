@@ -3,6 +3,7 @@ from six.moves import xrange
 import os
 import platform
 import time
+import matplotlib.pyplot as plt
 def softmax(x):
     #orig_shape = x.shape
     #if len(x.shape)>1:
@@ -22,7 +23,7 @@ class RNNModel:
         # hyper parameter
         self.hidden_size = 300
         self.learning_rate = 1e-1
-        self.seq_length = 50 
+        self.seq_length = 25 
         self.data_size = 0
         self.vocab_size = 0
     def load_data(self):
@@ -112,6 +113,7 @@ if __name__ == "__main__":
     idx = 0
     print('Length data = %d, Sequence length = %d' %(len(data), model.seq_length))
     hprev = np.zeros((model.hidden_size,1))
+    x_plt, y_plt = [], []
     start = time.time()
     for index in xrange(10000*200):
         x, h, y_hat= {}, {}, {}
@@ -129,8 +131,13 @@ if __name__ == "__main__":
             #target[labels[t]] = 1
             loss += model.loss_func(labels[t],y_hat[t])
         smooth_loss = 0.999 * smooth_loss + loss * 0.001
+        if smooth_loss < 40:
+            print ("Break because smooth_loss = {:.5f} and it's less than 40".format(smooth_loss))
+            break;
         if (index % 10000) == 0:
             print ("iter: {:}, loss: {:}".format(index,smooth_loss))
+            x_plt.append(smooth_loss)
+            y_plt.append(index)
             model.sample(hprev,inputs[0],200,idx_to_char,Wx,Wh,Wy,bh,by)
         dWx, dWh, dWy, dbh, dby, hprev = model.backprop(inputs, labels, x, y_hat, h, Wx, Wh, Wy, bh, by)
         for param,dparam, mem in zip ([Wx, Wh, Wy, bh, by],\
@@ -139,4 +146,6 @@ if __name__ == "__main__":
             mem += dparam * dparam
             param += -model.learning_rate * dparam/np.sqrt(mem + 1e-8) #adagrad update
         idx += model.seq_length # move pointer 
+    plt.plot(y_plt, x_plt)
+    plt.show()
     print ('Total time for training is {:.2f}'.format(time.time() - start))
