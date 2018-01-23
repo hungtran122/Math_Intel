@@ -84,7 +84,7 @@ class RNNModel:
             dWh += np.dot(dhraw,h[t-1].T) #derivative of hidden layer to hidden layer weight
             dhnext = np.dot(Wh.T, dhraw)
         for dparam in [dWx, dWh, dWy, dbh, dby]:
-            np.clip(dparam, -5 , 5, out=dparam) # avoid exploiding gradients
+            np.clip(dparam, -5 , 5, out=dparam) # avoid exploding gradients
         return dWx, dWh, dWy, dbh, dby, h[len(inputs) - 1] 
     def sample(self,h,seed_ix,n,idx_to_char,Wx,Wh,Wy,bh,by):
         #create vector
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             print ("Break because smooth_loss = {:.5f} and it's less than 40".format(smooth_loss))
             break;
         if (index % 10000) == 0:
-            print ("iter: {:}, loss: {:}".format(index,smooth_loss))
+            print ("iteration: {:}, loss: {:}".format(index,smooth_loss))
             x_plt.append(smooth_loss)
             y_plt.append(index)
             model.sample(hprev,inputs[0],200,idx_to_char,Wx,Wh,Wy,bh,by)
